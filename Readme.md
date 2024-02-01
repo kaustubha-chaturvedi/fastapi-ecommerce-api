@@ -116,7 +116,7 @@ http://127.0.0.1:8888/docs
 ```json
 {
     "createdOn": "Optional[datetime]",
-    "orderItems": "List[OrderItem]',
+    "orderItems": "List[OrderItem]",
     "userAddress": "userAddress",
     "totalPrice": "Optional[float]"
 }

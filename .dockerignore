@@ -5,6 +5,7 @@
 __pycache__
 Readme.md
 screenshots
+fake.py
 Dockerfile*
 Dockerfile.*
 .dockerignore

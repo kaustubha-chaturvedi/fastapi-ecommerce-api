@@ -15,16 +15,14 @@ git clone https://github.com/kaustubha-chaturvedi/fastapi-ecommerce-api.git
 pip install -r requirements.txt
 ```
 
-#### 2.3. Populate DB with fake data
-```bash
-python faketaxi.py
-```
-
-#### 2.4. Using docker
-
-##### 2.4.1. Run the application using docker-compose
+#### 2.3. Run the application using docker-compose
 ```bash
 docker-compose up
+```
+
+#### 2.4. Populate DB with fake data
+```bash
+python faketaxi.py
 ```
 
 #### 2.5. Without using docker

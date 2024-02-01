@@ -22,7 +22,7 @@ docker-compose up
 
 #### 2.4. Populate DB with fake data
 ```bash
-python faketaxi.py
+python faker.py
 ```
 
 #### 2.5. Without using docker

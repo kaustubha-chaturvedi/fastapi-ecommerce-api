@@ -27,19 +27,19 @@ python faketaxi.py
 docker-compose up
 ```
 
-### 2.5. Without using docker
+#### 2.5. Without using docker
 
-#### 2.5.1. Create a `.env` file in the root directory and add the following environment variables
+##### 2.5.1. Create a `.env` file in the root directory and add the following environment variables
 ```bash
 MONGO_URI=<your_mongodb_uri>
 ```
 
-#### 2.5.2. Run the application
+##### 2.5.2. Run the application
 ```bash
 uvicorn main:app --host 0.0.0.0 --port 8888
 ```
 
-#### 2.5.3. Open the application in browser
+##### 2.5.3. Open the application in browser
 ```bash
 http://127.0.0.1:8888/docs
 ```

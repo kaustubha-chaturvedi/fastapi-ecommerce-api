@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from app.products import router as product_router
 from app.orders import router as order_router
 

@@ -92,33 +92,33 @@ http://127.0.0.1:8888/docs
 #### 4.1. Products
 ```json
 {
-    "name": string,
-    "price": float,
-    "quantity": integer
+    "name": "string",
+    "price": "float",
+    "quantity": "int"
 }
 ```
 #### 4.2. OrderItem
 ```json
 {
-    "productId": string,
-    "boughtQuantity": int
+    "productId": "string",
+    "boughtQuantity": "int"
 }
 ```
 #### 4.3. UserAddress
 ```json
 {
-    "City": string,
-    "Country": string,
-    "ZipCode": string
+    "City": "string",
+    "Country": "string",
+    "ZipCode": "string"
 }
 ```
 #### 4.4. Orders
 ```json
 {
-    "createdOn": Optional[datetime],
-    "orderItems": List[OrderItem],
-    "userAddress": userAddress,
-    "totalPrice": Optional[float] = 0
+    "createdOn": "Optional[datetime]",
+    "orderItems": "List[OrderItem]',
+    "userAddress": "userAddress",
+    "totalPrice": "Optional[float]"
 }
 ```
 ### 5. Output Screenshots

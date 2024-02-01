@@ -57,7 +57,8 @@ async def list_products(
 @router.get("/{product_id}", response_model=dict)
 async def get_product(product_id: str):
     products_collection = await get_products_collection()
-    product = await products_collection.find_one({"_id": ObjectId(product_id)})
+    try: product = await products_collection.find_one({"_id": ObjectId(product_id)})
+    except: product = None
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     return {
@@ -80,7 +81,8 @@ async def create_product(product: Product):
 async def update_product(product_id: str, updated_product: Product):
     products_collection = await get_products_collection()
     product_id_obj = ObjectId(product_id)
-    existing_product = await products_collection.find_one({"_id": product_id_obj})
+    try: existing_product = await products_collection.find_one({"_id": product_id_obj})
+    except: existing_product = None
     if not existing_product:
         raise HTTPException(status_code=404, detail="Product not found")
     await products_collection.update_one(
@@ -93,7 +95,8 @@ async def update_product(product_id: str, updated_product: Product):
 @router.delete("/{product_id}", response_model=dict)
 async def delete_product(product_id: str):
     products_collection = await get_products_collection()
-    result = await products_collection.delete_one({"_id": ObjectId(product_id)})
+    try: result = await products_collection.delete_one({"_id": ObjectId(product_id)})
+    except: result = None
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Product not found")
     return {"message": "Product deleted successfully"}

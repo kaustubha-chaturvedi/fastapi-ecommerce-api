@@ -18,13 +18,13 @@ async def list_orders(
     order_list = []
     async for order in orders:
         try:
-            created_on = datetime.utcfromtimestamp(order.get("createdOn").time)
+            created_on = datetime.utcfromtimestamp(order.get("_createdOn").time)
         except:
             created_on = None
         order_data = {
             "orderId": str(order["_id"]),
             "createdOn": created_on,
-            "totalAmount": order.get("totalAmount", 0),
+            "totalAmount": order.get("_totalAmount", 0),
             "userAddress": order.get("userAddress", {}),
             "items": order.get("items", []),
         }
@@ -32,7 +32,10 @@ async def list_orders(
     return order_list
 
 
-@router.post("/create", response_model=dict)
+@router.post(
+    "/create",
+    response_model=dict,
+)
 async def create_order(order: Order):
     total_amount = 0
     order_items_with_amount = []
@@ -42,12 +45,17 @@ async def create_order(order: Order):
 
     for item in order.items:
         product_id = ObjectId(item.productId)
-
-        product = await products_collection.find_one({"_id": product_id})
+        try:
+            product = await products_collection.find_one({"_id": product_id})
+        except:
+            product = None
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
-
-        amount = product["price"] * item.boughtQuantity
+        if item.boughtQuantity > product.get("quantity", 0):
+            raise HTTPException(
+                status_code=400, detail="We don't have enough product in stock."
+            )
+        amount = product.get("price") * item.boughtQuantity
         total_amount += amount
 
         order_items_with_amount.append(
@@ -63,10 +71,10 @@ async def create_order(order: Order):
     created_on_timestamp = Timestamp(int(product_id.generation_time.timestamp()), 0)
 
     order_data = {
-        "createdOn": created_on_timestamp,
+        "_createdOn": created_on_timestamp,
         "items": order_items_with_amount,
         "userAddress": order.userAddress.model_dump(),
-        "totalAmount": total_amount,
+        "_totalAmount": total_amount,
     }
 
     result = await orders_collection.insert_one(order_data)
@@ -81,35 +89,64 @@ async def create_order(order: Order):
 @router.put("/{order_id}", response_model=dict)
 async def update_order(order_id: str, updated_order: Order):
     orders_collection = await get_orders_collection()
+    products_collection = await get_products_collection()
     order_id_obj = ObjectId(order_id)
+
     existing_order = await orders_collection.find_one({"_id": order_id_obj})
     if not existing_order:
         raise HTTPException(status_code=404, detail="Order not found")
-    original_items = existing_order.get("items", [])
-    await orders_collection.update_one(
-        {"_id": order_id_obj}, {"$set": updated_order.model_dump()}
-    )
-    products_collection = await get_products_collection()
-    for updated_item in updated_order.items:
-        product_id = ObjectId(updated_item.productId)
-        original_item = next(
-            (item for item in original_items if item["productId"] == str(product_id)),
-            None,
+
+    total_amount = 0.0
+
+    for update_item in updated_order.items:
+        product_id = ObjectId(update_item.productId)
+        try:
+            product = await products_collection.find_one({"_id": product_id})
+        except:
+            product = None
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        if update_item.boughtQuantity > product.get("quantity", 0):
+            raise HTTPException(
+                status_code=400, detail="We don't have enough product in stock."
+            )
+        if update_item.boughtQuantity < 0:
+            raise HTTPException(
+                status_code=400, detail="Bought quantity can't be less than 0."
+            )
+        amount = product.get("price") * update_item.boughtQuantity
+        total_amount += amount
+        await products_collection.update_one(
+            {"_id": product_id}, {"$inc": {"quantity": -update_item.boughtQuantity}}
         )
-        if original_item:
-            quantity_difference = (
-                updated_item.boughtQuantity - original_item["boughtQuantity"]
-            )
-            await products_collection.update_one(
-                {"_id": product_id}, {"$inc": {"quantity": -quantity_difference}}
-            )
+
+    await orders_collection.update_one(
+        {"_id": order_id_obj},
+        {
+            "$set": {
+                "items": [
+                    {
+                        "productId": str(ObjectId(item.productId)),
+                        "boughtQuantity": item.boughtQuantity,
+                    }
+                    for item in updated_order.items
+                ],
+                "userAddress": updated_order.userAddress.model_dump(),
+                "_totalAmount": total_amount,
+            }
+        },
+    )
+
     return {"message": "Order updated successfully"}
 
 
 @router.delete("/{order_id}", response_model=dict)
 async def delete_order(order_id: str):
     orders_collection = await get_orders_collection()
-    result = await orders_collection.delete_one({"_id": ObjectId(order_id)})
+    try:
+        result = await orders_collection.delete_one({"_id": ObjectId(order_id)})
+    except:
+        result = None
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Order not found")
     return {"message": "Order deleted successfully"}

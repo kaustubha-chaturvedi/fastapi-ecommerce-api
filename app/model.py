@@ -15,10 +15,12 @@ class UserAddress(BaseModel):
 
 
 class Order(BaseModel):
-    createdOn: Optional[datetime]
     items: List[OrderItem]
     userAddress: UserAddress
-    totalAmount: Optional[float] = 0
+    class Config:
+        underscore_attrs_are_private = True
+    _createdOn: datetime
+    _totalAmount: Optional[float]
 
 
 class Product(BaseModel):

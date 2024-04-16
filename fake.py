@@ -1,4 +1,4 @@
-import asyncio
+import asyncio,os
 from faker import Faker
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
@@ -16,7 +16,7 @@ async def generate_fake_product():
 
 
 async def add_fake_products(num):
-    client = AsyncIOMotorClient("mongodb://localhost:27017/")
+    client = AsyncIOMotorClient(os.environ.get("MONGO_URI", "mongodb://localhost:27017/"))
     db = client["ecommerce"]
     products_collection = db["products"]
 
